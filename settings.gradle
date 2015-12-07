@@ -1,0 +1,2 @@
+include ':app', ':Android-ImageCaches-library'
+project(':Android-ImageCaches-library').projectDir = new File('Android-ImageCache-library')
