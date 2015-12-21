@@ -3,6 +3,7 @@ package com.warmtel.cachetest;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,8 +11,10 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.warmtel.imagecache.AsyncMemoryFileCacheImageLoader;
+import com.warmtel.imagecache.httpcache.HttpConnectionUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,16 +49,35 @@ public class MerchantActivity extends Activity {
 
     public void getJsonStrByNet() {
         /** 从网络获取请求json数据 */
-        /*new HttpConnectionUtil().asyncTaskHttp(Constances.BASE_URL
-				+ "/app/merchant", Method.GET, new HttpCallBack() {
-			@Override
-			public void returnMessage(String message) {
-				Logs.v("message :" + message);
-				ArrayList<MerchantBean> merchantList = parseJsonToMerchantList(message);
-				mMerchantAdapter.setListData(merchantList);
-			}
-		});*/
+//        getJsonStrByAssets();
+        getDataByHttpConnection();
+    }
 
+    public void getDataByHttpConnection() {
+        final String url = "http://192.168.1.168/json/around";
+        HttpConnectionUtils.getInstance(this).asyncTaskConnection(url, HttpConnectionUtils.Method.GET,url, new HttpConnectionUtils.CallConnectionInterface() {
+            @Override
+            public void onExecuteResponse(String response) {
+                ArrayList<MerchantBean> merchantList = parseJsonToMerchantList(response);
+                mMerchantAdapter.setListData(merchantList);
+            }
+
+            @Override
+            public void onErrorResponse(String errorResponse) {
+
+            }
+
+            @Override
+            public void onCacheResponse(String errorResponse, String cacheData) {
+                Log.e("tag", "读缓存数据>>>>>>");
+                ArrayList<MerchantBean> merchantList = parseJsonToMerchantList(cacheData);
+                mMerchantAdapter.setListData(merchantList);
+                Toast.makeText(MerchantActivity.this, errorResponse, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public void getJsonStrByAssets() {
         try {
             InputStream in = getAssets().open("around");
             String jsonStr = readIt(in);
